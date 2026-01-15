@@ -77,6 +77,32 @@ function getPieceColor(type: PieceType): string {
   return colors[type];
 }
 
+// ---------- GET CELLS OF A PIECE ----------
+function getPieceCells(grid: CellProps[][], pieceId: string) {
+  const cells: { row: number; col: number }[] = [];
+  grid.forEach((row, r) =>
+    row.forEach((cell, c) => {
+      if (cell.pieceId === pieceId) cells.push({ row: r, col: c });
+    })
+  );
+  return cells;
+}
+
+// ---------- PICK UP PIECE ----------
+function pickUpPiece(grid: CellProps[][], pieceId: string) {
+  const newGrid = grid.map(r => r.map(c => ({ ...c })));
+  const cells = getPieceCells(grid, pieceId);
+  cells.forEach(({ row, col }) => {
+    newGrid[row][col] = {
+      ...newGrid[row][col],
+      state: "empty",
+      color: undefined,
+      pieceId: undefined,
+    };
+  });
+  return newGrid;
+}
+
 // ---------- APP ----------
 export default function App() {
   const [grid, setGrid] = useState<CellProps[][]>(createInitialGrid);
@@ -86,12 +112,20 @@ export default function App() {
   const [hoveredCell, setHoveredCell] =
     useState<{ row: number; col: number } | null>(null);
 
-  // ---------- DRAG START ----------
+  // ---------- DRAG EVENTS ----------
   function handleDragStart(event: DragStartEvent) {
-    setActivePiece(event.active.data.current?.type ?? null);
+    const pieceId = event.active.id;
+    const type = event.active.data.current?.type as PieceType | undefined;
+
+    // if piece on board → remove it
+    if (grid.some(row => row.some(c => c.pieceId === pieceId))) {
+      setGrid(prev => pickUpPiece(prev, pieceId.toString()));
+      setDroppedPieces(prev => prev.filter(id => id !== pieceId));
+    }
+
+    setActivePiece(type ?? null);
   }
 
-  // ---------- DRAG OVER ----------
   function handleDragOver(event: DragOverEvent) {
     const over = event.over;
     if (!over || !over.id.toString().startsWith("cell-")) {
@@ -103,7 +137,6 @@ export default function App() {
     setHoveredCell({ row: +row, col: +col });
   }
 
-  // ---------- DRAG END ----------
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
 
@@ -146,6 +179,7 @@ export default function App() {
           ...newGrid[r][c],
           state: "occupied",
           color,
+          pieceId: active.id.toString(),
         };
       }
 
