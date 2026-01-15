@@ -1,65 +1,22 @@
-* {
-    box-sizing: border-box;
+.board {
+    display: inline-block;
 }
 
-body {
-    font-family: sans-serif;
-    margin: 20px;
-    padding: 0;
+.board-row {
+    display: flex;
+    /* Use flexbox instead of floats */
 }
 
-h1 {
-    margin-top: 0;
-    font-size: 22px;
-}
-
-h2 {
-    margin-top: 0;
-    font-size: 20px;
-}
-
-h3 {
-    margin-top: 0;
-    font-size: 18px;
-}
-
-h4 {
-    margin-top: 0;
-    font-size: 16px;
-}
-
-h5 {
-    margin-top: 0;
-    font-size: 14px;
-}
-
-h6 {
-    margin-top: 0;
-    font-size: 12px;
-}
-
-code {
-    font-size: 1.2em;
-}
-
-ul {
-    padding-inline-start: 20px;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-body {
-    font-family: sans-serif;
-    margin: 20px;
-    padding: 0;
+.board-row:after {
+    /* No longer needed with flexbox */
+    clear: both;
+    content: '';
+    display: table;
 }
 
 .cell {
     background: #fff;
     border: 1px solid #999;
-    float: left;
     font-size: 24px;
     font-weight: bold;
     line-height: 34px;
@@ -69,39 +26,6 @@ body {
     padding: 0;
     text-align: center;
     width: 34px;
-}
-
-.board-row:after {
-    clear: both;
-    content: '';
-    display: table;
-}
-
-.status {
-    margin-bottom: 10px;
-}
-
-.game {
-    display: flex;
-    flex-direction: row;
-}
-
-.game-info {
-    margin-left: 20px;
-}
-
-.piece {
-    display: grid;
-    grid-template-columns: repeat(5, 30px);
-    grid-template-rows: repeat(5, 30px);
-    gap: 0;
-}
-
-.piece-cell {
-    background-color: var(--piece-color);
-    grid-column: calc(var(--dx) + 1);
-    grid-row: calc(5 - var(--dy));
-    width: 30px;
-    height: 30px;
-    border: 1px solid #ccc;
+    flex-shrink: 0;
+    /* Prevent cells from shrinking */
 }
