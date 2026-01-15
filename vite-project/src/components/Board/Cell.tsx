@@ -23,7 +23,7 @@ export default function Cell({ id, state, color }: CellProps) {
         if (state === "occupied" && color) return color;
         if (state === "preview-valid") return "#90EE90";
         if (state === "preview-invalid") return "#FFB6C6";
-        return "transparent";
+        return "black";
     };
 
     return (
