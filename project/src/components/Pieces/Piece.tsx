@@ -22,9 +22,9 @@ export const PIECE_SHAPES: Record<PieceType, Coordinate[]> = {
     "L": [[0, 0], [1, 0], [1, 1], [1, -1], [2, 0]],
 };
 
-const CELL_SIZE = 30;
+export const CELL_SIZE = 30;
 
-function assemblePieceShape(type: PieceType, color: string) {
+export function assemblePieceShape(type: PieceType, color: string) {
     const coordinates = PIECE_SHAPES[type] ?? [];
 
     // Calculate bounding box

@@ -24,3 +24,12 @@
 .pieceCell.rootCell {
     border: 3px solid black;
 }
+
+.freePiece {
+    position: absolute;
+    z-index: 100;
+}
+
+.freePiece.dragging {
+    z-index: 1000;
+}
