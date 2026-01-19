@@ -2,7 +2,8 @@
     width: 100vw;
     height: 100vh;
     background-color: #f5f5f5;
-    position: relative;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
 }
 
@@ -10,6 +11,7 @@
     padding: 20px;
     background-color: #fff;
     border-bottom: 2px solid #ddd;
+    flex-shrink: 0;
 }
 
 .title {
@@ -22,4 +24,9 @@
     margin: 8px 0 0 0;
     color: #666;
     font-size: 14px;
+}
+
+.gameArea {
+    flex: 1;
+    position: relative;
 }
