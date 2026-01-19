@@ -1,11 +1,11 @@
-import React, { type ReactElement, useState } from 'react';
+import React, { type ReactElement, useState, useEffect } from 'react';
 import { DndContext, useDndMonitor } from '@dnd-kit/core';
 import { DraggablePiece } from './components/Pieces/DraggablePiece';
 import { GameBoard } from './components/Board/GameBoard';
 import { useGameState } from './hooks/useGameState';
 import { useDragAndDropSetup } from './hooks/useDragAndDrop';
 import { INITIAL_PIECES, BOARD_CONFIG } from './constants/game.constants';
-import { createInitialGrid } from './utils/gridUtils';
+import { createInitialGrid, updateGrid } from './utils/gridUtils';
 import { type Piece } from './types/piece.types';
 import { type Cell } from './types/board.types'
 import styles from './App.module.css';
@@ -27,8 +27,12 @@ function DebugOverlay() {
 
 export default function App(): ReactElement {
     const { pieces, updatePiecePosition, rotatePiece } = useGameState(INITIAL_PIECES);
-    const { sensors, handleDragEnd } = useDragAndDropSetup(updatePiecePosition, pieces);
     const [grid, setGrid] = useState<Cell[][]>(createInitialGrid);
+    const { sensors, handleDragEnd } = useDragAndDropSetup(updatePiecePosition, pieces, grid, setGrid);
+
+    useEffect(() => {
+        console.log('Grid state updated:', grid);
+    }, [grid]);
 
     return (
         <div className={styles.container}>

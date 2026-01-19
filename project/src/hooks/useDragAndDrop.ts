@@ -2,8 +2,11 @@ import {useSensor, useSensors, MouseSensor, TouchSensor, type DragEndEvent} from
 import { type Piece } from '../types/piece.types';
 import { CELL_SIZE } from '../constants/piece.shapes';
 import { BOARD_BORDER } from '../constants/game.constants';
+import { updateGrid } from '../utils/gridUtils';
+import { type Cell } from '../types/board.types';
 
-export function useDragAndDropSetup(updatePiecePosition: (id: string, deltaX: number, deltaY: number) => void, pieces: Piece[]) {
+export function useDragAndDropSetup(updatePiecePosition: (id: string, deltaX: number, deltaY: number) => void, 
+pieces: Piece[], grid: Cell[][], setGrid: (grid: Cell[][]) => void) {
     const mouseSensor = useSensor(MouseSensor, {
         activationConstraint: {
             distance: 10,
@@ -31,7 +34,8 @@ export function useDragAndDropSetup(updatePiecePosition: (id: string, deltaX: nu
                 // calculate the corresponding Cell that the root cell is placed
                 let x = Math.abs(Math.floor((over.rect.left - finalX) / CELL_SIZE))
                 let y = Math.abs(Math.floor(((over.rect.top - finalY) / CELL_SIZE) - BOARD_BORDER))
-                console.log(x, y);
+                
+                setGrid(updateGrid(grid, x, y, piece));
             }
         }
     };
