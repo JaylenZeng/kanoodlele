@@ -26,12 +26,20 @@ function DebugOverlay() {
 }
 
 export default function App(): ReactElement {
-    const { pieces, updatePiecePosition, rotatePiece } = useGameState(INITIAL_PIECES);
+    const { pieces, updatePiecePosition, rotatePiece, placePieceOnBoard, removePieceFromBoard } = useGameState(INITIAL_PIECES);
     const [grid, setGrid] = useState<Cell[][]>(createInitialGrid);
-    const { sensors, handleDragEnd } = useDragAndDropSetup(updatePiecePosition, pieces, grid, setGrid);
+    const { sensors, handleDragEnd } = useDragAndDropSetup(
+        updatePiecePosition, 
+        pieces, 
+        grid, 
+        setGrid, 
+        placePieceOnBoard,
+        removePieceFromBoard
+    );
 
     useEffect(() => {
-        console.log('Grid state updated:', grid);
+        console.log('Piece state updated:', pieces);
+        console.log("Grid updated:", grid)
     }, [grid]);
 
     return (

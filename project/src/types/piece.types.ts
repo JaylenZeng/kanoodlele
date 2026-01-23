@@ -10,6 +10,9 @@ export interface Piece {
     x: number;
     y: number;
     rotation: Rotation;
+    onBoard: boolean;
+    boardX?: number;
+    boardY?: number;
 }
 
 export interface DraggablePieceProps {

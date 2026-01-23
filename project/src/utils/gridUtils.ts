@@ -13,24 +13,32 @@ export const createInitialGrid = (): Cell[][] =>
 
 export function updateGrid(currGrid: Cell[][], rootX: number, rootY: number, piece: Piece ) {
     const coordinates = getRotatedShape(piece.type, piece.rotation);
-
-    const minX = Math.min(...coordinates.map(([dx]) => dx));
-    const minY = Math.min(...coordinates.map(([, dy]) => dy));
-
     const newGrid = currGrid.map(r => r.map(c => ({ ...c })));
 
     for (const [dx, dy] of coordinates) {
-        const actualRootX = rootX + Math.abs(minX)
-        const actualRootY = rootY + Math.abs(minY)
 
-        const c = actualRootX + dx;
-        const r = actualRootY + dy;
+        const c = rootX + dx;
+        const r = rootY + dy;
 
-        console.log('Trying to access cell:', r, c, 'Grid size:', currGrid.length, 'x', currGrid[0].length);
         newGrid[r][c] = {
             isOccupied: true,
         };
     }
-    console.log(newGrid);
+
+    return newGrid;
+}
+
+export function clearCells(currGrid: Cell[][], rootX: number, rootY: number, piece: Piece) {
+    const coordinates = getRotatedShape(piece.type, piece.rotation);
+    const newGrid = currGrid.map(r => r.map(c => ({ ...c })));
+
+    for (const [dx, dy] of coordinates) {
+        const c = rootX + dx;
+        const r = rootY + dy;
+
+        newGrid[r][c] = {
+            isOccupied: false,
+        };
+    }
     return newGrid;
 }

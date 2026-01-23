@@ -1,5 +1,5 @@
 import React from 'react';
-import {type Piece} from '../types/piece.types';
+import {type Piece, type PieceType} from '../types/piece.types';
 import { getNextRotation } from '../utils/rotations';
 
 export function useGameState(initialPieces: Piece[]) {
@@ -25,5 +25,23 @@ export function useGameState(initialPieces: Piece[]) {
         );
     };
 
-    return { pieces, updatePiecePosition, rotatePiece };
+    function placePieceOnBoard(id: string, rootX: number, rootY: number) {
+        setPieces((prevPieces: Piece[]) =>
+            prevPieces.map((piece: Piece) => {
+                if (piece.id !== id) return piece;
+                return { ...piece, onBoard: true, boardX: rootX, boardY: rootY };
+            })
+        );
+    }
+
+    function removePieceFromBoard(id: string) {
+        setPieces((prevPieces: Piece[]) =>
+            prevPieces.map((piece: Piece) => {
+                if (piece.id !== id) return piece;
+                return { ...piece, onBoard: false, boardX: undefined, boardY: undefined };
+            })
+        );
+    }
+
+    return { pieces, updatePiecePosition, rotatePiece, placePieceOnBoard, removePieceFromBoard };
 }
