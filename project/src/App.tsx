@@ -54,7 +54,7 @@ export default function App(): ReactElement {
             <div className={styles.gameArea}>
                 <DndContext
                     sensors={sensors}
-                    modifiers={[snapToGridOnBoard]}
+                    modifiers={[snapToGridOnBoard(pieces, grid)]}
                     onDragEnd={handleDragEnd}
                 >   
 

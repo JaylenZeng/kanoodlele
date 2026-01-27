@@ -1,31 +1,56 @@
 import { type Modifier } from '@dnd-kit/core';
 import { CELL_SIZE } from '../constants/piece.shapes';
 import { BOARD_BORDER } from '../constants/game.constants';
+import { type Piece } from '../types/piece.types';
+import { type Cell } from '../types/board.types';
+import { getRotatedShape } from './rotations';
+import { isValidPlacement } from './gridUtils';
 
-export const snapToGridOnBoard: Modifier = ({ transform, over, draggingNodeRect }) => {
-    if (over?.id === 'game-board' && over.rect) {
-        const boardLeft = over.rect.left + BOARD_BORDER;
-        const boardTop = over.rect.top + BOARD_BORDER;
+export const snapToGridOnBoard = (pieces: Piece[], grid: Cell[][]): Modifier => ({ transform, over, active, draggingNodeRect }) => {
+    if (over?.id === 'game-board' && over.rect && active) {
+        const piece = pieces.find(p => p.id === active.id);
 
-        // Get the current position of the dragged element
+        if (!piece) {
+            return transform;
+        }
+
+        // Get minX/minY from the rotated shape
+        const coordinates = getRotatedShape(piece.type, piece.rotation);
+        const minX = Math.min(...coordinates.map(([dx]) => dx));
+        const minY = Math.min(...coordinates.map(([, dy]) => dy));
+
+        // Use draggingNodeRect (viewport coordinates) instead of piece position
         const currentX = draggingNodeRect?.left ?? 0;
         const currentY = draggingNodeRect?.top ?? 0;
 
-        // Calculate where the piece would be after transform
+        // Bounding box position after transform
         const targetX = currentX + transform.x;
         const targetY = currentY + transform.y;
 
-        // Calculate position relative to board
-        const relativeX = targetX - boardLeft;
-        const relativeY = targetY - boardTop;
+        // Root cell position (offset from bounding box)
+        const rootCellX = targetX + (-minX * CELL_SIZE);
+        const rootCellY = targetY + (-minY * CELL_SIZE);;
 
-        // Snap to grid relative to board
+        // Root cell position relative to board
+        const relativeX = rootCellX - (over.rect.left + BOARD_BORDER);
+        const relativeY = rootCellY - (over.rect.top + BOARD_BORDER);
+
+        // Snap root cell to grid
         const snappedRelativeX = Math.round(relativeX / CELL_SIZE) * CELL_SIZE;
         const snappedRelativeY = Math.round(relativeY / CELL_SIZE) * CELL_SIZE;
+        
+        // Calculate which grid cell the root would snap to
+        const gridX = snappedRelativeX / CELL_SIZE;
+        const gridY = snappedRelativeY / CELL_SIZE;
 
-        // Convert back to transform values
+        // Check if placement is valid
+        if (!isValidPlacement(grid, gridX, gridY, piece)) {
+            return transform;
+        }
+
         const snappedX = snappedRelativeX - relativeX + transform.x;
         const snappedY = snappedRelativeY - relativeY + transform.y;
+
 
         return {
             ...transform,
