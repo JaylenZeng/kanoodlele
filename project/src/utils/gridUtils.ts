@@ -1,7 +1,8 @@
 import { BOARD_CONFIG } from "../constants/game.constants";
 import { type Cell } from "../types/board.types";
 import { type Piece } from "../types/piece.types";
-import { getRotatedShape } from "./rotations";
+import { getTransformedShape } from "./rotations";
+import { CELL_SIZE, BOARD_BORDER } from "../constants/game.constants";
 
 export const createInitialGrid = (): Cell[][] =>
     Array.from({ length: BOARD_CONFIG.gridHeight }, () =>
@@ -12,7 +13,7 @@ export const createInitialGrid = (): Cell[][] =>
 
 
 export function updateGrid(currGrid: Cell[][], rootX: number, rootY: number, piece: Piece ) {
-    const coordinates = getRotatedShape(piece.type, piece.rotation);
+    const coordinates = getTransformedShape(piece.type, piece.rotation, piece.reflection);
     const newGrid = currGrid.map(r => r.map(c => ({ ...c })));
 
     for (const [dx, dy] of coordinates) {
@@ -29,7 +30,7 @@ export function updateGrid(currGrid: Cell[][], rootX: number, rootY: number, pie
 }
 
 export function clearCells(currGrid: Cell[][], rootX: number, rootY: number, piece: Piece) {
-    const coordinates = getRotatedShape(piece.type, piece.rotation);
+    const coordinates = getTransformedShape(piece.type, piece.rotation, piece.reflection);
     const newGrid = currGrid.map(r => r.map(c => ({ ...c })));
 
     for (const [dx, dy] of coordinates) {
@@ -44,14 +45,19 @@ export function clearCells(currGrid: Cell[][], rootX: number, rootY: number, pie
 }
 
 export function isValidPlacement(currGrid: Cell[][], rootX: number, rootY: number, piece: Piece): boolean {
-    const coordinates = getRotatedShape(piece.type, piece.rotation);
+    // Reject negative zero
+    if (Object.is(rootX, -0) || Object.is(rootY, -0)) {
+        return false;
+    }
+    
+    const coordinates = getTransformedShape(piece.type, piece.rotation, piece.reflection);
 
     for (const [dx, dy] of coordinates) {
         const c = rootX + dx;
         const r = rootY + dy;
 
         // Check out of bounds first
-        if (r < 0 || r >= BOARD_CONFIG.gridHeight || c < 0 || c >= BOARD_CONFIG.gridWidth) {
+        if (r <= -1 || r >= BOARD_CONFIG.gridHeight || c <= -1 || c >= BOARD_CONFIG.gridWidth) {
             return false;
         }
 

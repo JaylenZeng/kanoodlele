@@ -1,4 +1,4 @@
-import { type Coordinate, type PieceType, type Rotation} from "../types/piece.types";
+import { type Coordinate, type Piece, type PieceType, type Rotation} from "../types/piece.types";
 import { PIECE_SHAPES } from "../constants/piece.shapes";
 
 export function rotateCoordinate(coord: Coordinate, rotation: Rotation): Coordinate {
@@ -18,9 +18,28 @@ export function rotateCoordinate(coord: Coordinate, rotation: Rotation): Coordin
     }
 }
 
-export function getRotatedShape(type: PieceType, rotation: Rotation): Coordinate[] {
+export function reflectCoordinates(coord: Coordinate, reflection: boolean): Coordinate {
+    const [dx, dy] = coord;
+
+    if (reflection) {
+        return [-dx, dy];
+    }
+    else {
+        return [dx, dy];
+    }
+}
+
+export function getTransformedShape(type: PieceType, rotation: Rotation, reflection: boolean): Coordinate[] {
+    // First reflect
+    const reflectedShape = getReflectedShape(type, reflection);
+
+    // then rotate
+    return reflectedShape.map(coord => rotateCoordinate(coord, rotation));
+}
+
+export function getReflectedShape(type: PieceType, reflection: boolean): Coordinate[] {
     const baseShape = PIECE_SHAPES[type];
-    return baseShape.map(coord => rotateCoordinate(coord, rotation));
+    return baseShape.map(coord => reflectCoordinates(coord, reflection))
 }
 
 export function getNextRotation(current: Rotation): Rotation {

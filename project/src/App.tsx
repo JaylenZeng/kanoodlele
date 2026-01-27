@@ -1,4 +1,4 @@
-import React, { type ReactElement, useState, useEffect } from 'react';
+import React, { type ReactElement, useState, useEffect, useRef } from 'react';
 import { DndContext, useDndMonitor } from '@dnd-kit/core';
 import { DraggablePiece } from './components/Pieces/DraggablePiece';
 import { GameBoard } from './components/Board/GameBoard';
@@ -26,16 +26,20 @@ function DebugOverlay() {
 }
 
 export default function App(): ReactElement {
-    const { pieces, updatePiecePosition, rotatePiece, placePieceOnBoard, removePieceFromBoard } = useGameState(INITIAL_PIECES);
+    const { pieces, updatePiecePosition, rotatePiece, reflectPiece, placePieceOnBoard, removePieceFromBoard } = useGameState(INITIAL_PIECES);
     const [grid, setGrid] = useState<Cell[][]>(createInitialGrid);
-    const { sensors, handleDragEnd } = useDragAndDropSetup(
+    const lastValidGridPosition = useRef<{ gridX: number; gridY: number } | null>(null);
+
+    const { sensors, handleDragStart, handleDragEnd } = useDragAndDropSetup(
         updatePiecePosition, 
         pieces, 
         grid, 
         setGrid, 
         placePieceOnBoard,
-        removePieceFromBoard
+        removePieceFromBoard,
+        lastValidGridPosition,
     );
+
 
     useEffect(() => {
         console.log('Piece state updated:', pieces);
@@ -54,7 +58,8 @@ export default function App(): ReactElement {
             <div className={styles.gameArea}>
                 <DndContext
                     sensors={sensors}
-                    modifiers={[snapToGridOnBoard(pieces, grid)]}
+                    onDragStart={handleDragStart}
+                    modifiers={[snapToGridOnBoard(pieces, grid, lastValidGridPosition)]}
                     onDragEnd={handleDragEnd}
                 >   
 
@@ -67,14 +72,10 @@ export default function App(): ReactElement {
 
                     {pieces.map((piece: Piece) => (
                         <DraggablePiece
-                            key={piece.id}
-                            id={piece.id}
-                            type={piece.type}
-                            color={piece.color}
-                            x={piece.x}
-                            y={piece.y}
-                            rotation={piece.rotation}
+                            key = {piece.id}
+                            piece = {piece}
                             onRotate={() => rotatePiece(piece.id)}
+                            onReflect={() => reflectPiece(piece.id)}
                         />
                     ))}
                 </DndContext>

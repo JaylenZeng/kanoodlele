@@ -1,17 +1,15 @@
-import {useSensor, useSensors, MouseSensor, TouchSensor, type DragEndEvent} from '@dnd-kit/core'
+import {useSensor, useSensors, MouseSensor, TouchSensor, type DragEndEvent, type DragStartEvent} from '@dnd-kit/core'
 import { type Piece } from '../types/piece.types';
-import { CELL_SIZE } from '../constants/piece.shapes';
-import { BOARD_BORDER } from '../constants/game.constants';
-import { clearCells, updateGrid } from '../utils/gridUtils';
+import { clearCells, updateGrid, isValidPlacement } from '../utils/gridUtils';
 import { type Cell } from '../types/board.types';
-import { getRotatedShape } from "../utils/rotations";
 
 
 export function useDragAndDropSetup(
     updatePiecePosition: (id: string, deltaX: number, deltaY: number) => void, 
     pieces: Piece[], grid: Cell[][], setGrid: (grid: Cell[][]) => void,
     placePieceOnBoard: (id: string, rootX: number, rootY: number) => void,
-    removePieceFromBoard: (id: string) => void
+    removePieceFromBoard: (id: string) => void,
+    lastValidGridPosition: { current: { gridX: number, gridY: number } | null}
 ) {
     const mouseSensor = useSensor(MouseSensor, {
         activationConstraint: {
@@ -28,6 +26,18 @@ export function useDragAndDropSetup(
 
     const sensors = useSensors(mouseSensor, touchSensor);
 
+    const handleDragStart = (event: DragStartEvent): void => {
+        const piece = pieces.find(p => p.id === event.active.id);
+
+        lastValidGridPosition.current = null; // reset for next drag
+
+        if (piece?.onBoard && piece.boardX !== undefined && piece.boardY !== undefined) {
+            const newGrid = clearCells(grid, piece.boardX, piece.boardY, piece);
+            setGrid(newGrid);
+            removePieceFromBoard(piece.id);
+        }
+    };
+
     const handleDragEnd = (event: DragEndEvent): void => {
         const { active, delta, over } = event;
         updatePiecePosition(active.id as string, delta.x, delta.y);
@@ -35,35 +45,16 @@ export function useDragAndDropSetup(
 
         let newGrid = grid;
 
-        if (piece?.onBoard) {
-            if (piece.boardX && piece.boardY) {
-                newGrid = clearCells(grid, piece.boardX, piece.boardY, piece);
-                removePieceFromBoard(piece.id);
-            }
+        // Only update grid if we have a valid snapped position
+        if (piece && lastValidGridPosition.current) {
+            const { gridX, gridY } = lastValidGridPosition.current;
+            newGrid = updateGrid(newGrid, gridX, gridY, piece);
+            placePieceOnBoard(piece.id, gridX, gridY);
         }
 
-        if (over?.id === 'game-board') {
-            if (piece) {
-                const finalX = piece.x + delta.x;
-                const finalY = piece.y + delta.y;
-                // calculate the corresponding Cell that the root cell is placed
-                let x = Math.abs(Math.floor((over.rect.left - finalX) / CELL_SIZE))
-                let y = Math.abs(Math.floor(((over.rect.top - finalY) / CELL_SIZE) - BOARD_BORDER))
-                
-                const coordinates = getRotatedShape(piece.type, piece.rotation);
-                const minX = Math.min(...coordinates.map(([dx]) => dx));
-                const minY = Math.min(...coordinates.map(([, dy]) => dy));
-
-                const actualRootX = x + Math.abs(minX);
-                const actualRootY = y + Math.abs(minY);
-
-                newGrid = updateGrid(newGrid, actualRootX, actualRootY, piece);
-                placePieceOnBoard(piece.id, actualRootX, actualRootY)
-            }
-        }
-
+        lastValidGridPosition.current = null;
         setGrid(newGrid);
     };
 
-    return { sensors, handleDragEnd };
+    return { sensors, handleDragStart, handleDragEnd };
 }

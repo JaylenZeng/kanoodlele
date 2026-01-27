@@ -3,10 +3,15 @@ import { CELL_SIZE } from '../constants/piece.shapes';
 import { BOARD_BORDER } from '../constants/game.constants';
 import { type Piece } from '../types/piece.types';
 import { type Cell } from '../types/board.types';
-import { getRotatedShape } from './rotations';
+import { getTransformedShape } from './rotations';
 import { isValidPlacement } from './gridUtils';
+import { type RefObject } from 'react';
 
-export const snapToGridOnBoard = (pieces: Piece[], grid: Cell[][]): Modifier => ({ transform, over, active, draggingNodeRect }) => {
+export const snapToGridOnBoard = (
+    pieces: Piece[], 
+    grid: Cell[][], 
+    lastValidGridPosition: RefObject<{ gridX: number; gridY: number } | null>
+): Modifier => ({ transform, over, active, draggingNodeRect }) => {
     if (over?.id === 'game-board' && over.rect && active) {
         const piece = pieces.find(p => p.id === active.id);
 
@@ -15,7 +20,7 @@ export const snapToGridOnBoard = (pieces: Piece[], grid: Cell[][]): Modifier => 
         }
 
         // Get minX/minY from the rotated shape
-        const coordinates = getRotatedShape(piece.type, piece.rotation);
+        const coordinates = getTransformedShape(piece.type, piece.rotation, piece.reflection);
         const minX = Math.min(...coordinates.map(([dx]) => dx));
         const minY = Math.min(...coordinates.map(([, dy]) => dy));
 
@@ -29,7 +34,7 @@ export const snapToGridOnBoard = (pieces: Piece[], grid: Cell[][]): Modifier => 
 
         // Root cell position (offset from bounding box)
         const rootCellX = targetX + (-minX * CELL_SIZE);
-        const rootCellY = targetY + (-minY * CELL_SIZE);;
+        const rootCellY = targetY + (-minY * CELL_SIZE);
 
         // Root cell position relative to board
         const relativeX = rootCellX - (over.rect.left + BOARD_BORDER);
@@ -45,12 +50,14 @@ export const snapToGridOnBoard = (pieces: Piece[], grid: Cell[][]): Modifier => 
 
         // Check if placement is valid
         if (!isValidPlacement(grid, gridX, gridY, piece)) {
+            lastValidGridPosition.current = null;
             return transform;
         }
 
         const snappedX = snappedRelativeX - relativeX + transform.x;
         const snappedY = snappedRelativeY - relativeY + transform.y;
 
+        lastValidGridPosition.current = { gridX, gridY };
 
         return {
             ...transform,

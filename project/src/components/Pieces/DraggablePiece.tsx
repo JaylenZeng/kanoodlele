@@ -1,24 +1,21 @@
 import { type ReactElement } from "react";
 import { type DraggablePieceProps } from "../../types/piece.types";
 import { useDraggable } from '@dnd-kit/core'
-import { getRotatedShape } from "../../utils/rotations";
+import { getTransformedShape } from "../../utils/rotations";
 import { CELL_SIZE } from "../../constants/piece.shapes";
 import styles from "./DraggablePiece.module.css"
 
 export function DraggablePiece({
-    id,
-    type,
-    color,
-    x,
-    y,
-    rotation,
-    onRotate
+    piece,
+    onRotate,
+    onReflect
 }: DraggablePieceProps): ReactElement {
+    const { id, type, color, x, y, rotation, reflection } = piece;
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: id,
     });
 
-    const rotatedShape = getRotatedShape(type, rotation);
+    const rotatedShape = getTransformedShape(type, rotation, reflection);
 
     // Calculate bounding box of the piece
     const minX = Math.min(...rotatedShape.map(([dx]) => dx));
@@ -31,8 +28,20 @@ export function DraggablePiece({
 
     const handleContextMenu = (e: React.MouseEvent): void => {
         e.preventDefault();
-        onRotate();
+        if (e.shiftKey) {
+            onReflect();  // Shift + Right-click to reflect
+        } else {
+            onRotate();   // Right-click to rotate
+        }
     };
+
+    const handleMouseDown = (e: React.MouseEvent): void => {
+        if (e.button === 1 || (e.shiftKey && e.button === 0)) { // middle click
+            console.log("click!")
+            e.preventDefault
+            onReflect();
+        }
+    }
 
     const handleDoubleClick = (): void => {
         onRotate();
@@ -53,6 +62,7 @@ export function DraggablePiece({
             className={`${styles.pieceContainer} ${isDragging ? styles.dragging : ''}`}
             style={containerStyle}
             onContextMenu={handleContextMenu}
+            onMouseDown={handleMouseDown}
             onDoubleClick={handleDoubleClick}
             {...listeners}
             {...attributes}

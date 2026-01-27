@@ -10,19 +10,16 @@ export interface Piece {
     x: number;
     y: number;
     rotation: Rotation;
+    reflection: boolean;
     onBoard: boolean;
     boardX?: number;
     boardY?: number;
 }
 
 export interface DraggablePieceProps {
-    id: string;
-    type: PieceType;
-    color: string;
-    x: number;
-    y: number;
-    rotation: Rotation;
+    piece: Piece;
     onRotate: () => void;
+    onReflect: () => void;
 }
 
 export type PieceType =
