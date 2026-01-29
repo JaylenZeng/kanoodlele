@@ -5,25 +5,11 @@ import { GameBoard } from './components/Board/GameBoard';
 import { useGameState } from './hooks/useGameState';
 import { useDragAndDropSetup } from './hooks/useDragAndDrop';
 import { INITIAL_PIECES, BOARD_CONFIG } from './constants/game.constants';
-import { createInitialGrid, updateGrid } from './utils/gridUtils';
+import { createInitialGrid, clearCells } from './utils/gridUtils';
 import { type Piece } from './types/piece.types';
 import { type Cell } from './types/board.types'
 import styles from './App.module.css';
 import { snapToGridOnBoard } from './utils/snapToGrid';
-
-function DebugOverlay() {
-    const [collisionRect, setCollisionRect] = React.useState<DOMRect | null>(null);
-
-    useDndMonitor({
-        onDragMove(event) {
-            // Log the collision rect being used
-            console.log('Active rect:', event.active.rect.current.translated);
-            console.log('Over:', event.over?.id, event.over?.rect);
-        },
-    });
-
-    return null; // Or render a visual if needed
-}
 
 export default function App(): ReactElement {
     const { pieces, updatePiecePosition, rotatePiece, reflectPiece, placePieceOnBoard, removePieceFromBoard } = useGameState(INITIAL_PIECES);
@@ -39,6 +25,28 @@ export default function App(): ReactElement {
         removePieceFromBoard,
         lastValidGridPosition,
     );
+
+    const handleRotatePiece = (id: string): void => {
+        const piece = pieces.find(p => p.id === id);
+
+        if (piece?.onBoard && piece.boardX !== undefined && piece.boardY !== undefined) {
+            const newGrid = clearCells(grid, piece.boardX, piece.boardY, piece);
+            setGrid(newGrid);
+        }
+
+        rotatePiece(id);
+    };
+
+    const handleReflectPiece = (id: string): void => {
+        const piece = pieces.find(p => p.id === id);
+
+        if (piece?.onBoard && piece.boardX !== undefined && piece.boardY !== undefined) {
+            const newGrid = clearCells(grid, piece.boardX, piece.boardY, piece);
+            setGrid(newGrid);
+        }
+
+        reflectPiece(id);
+    };
 
 
     useEffect(() => {
@@ -74,8 +82,8 @@ export default function App(): ReactElement {
                         <DraggablePiece
                             key = {piece.id}
                             piece = {piece}
-                            onRotate={() => rotatePiece(piece.id)}
-                            onReflect={() => reflectPiece(piece.id)}
+                            onRotate={() => handleRotatePiece(piece.id)}
+                            onReflect={() => handleReflectPiece(piece.id)}
                         />
                     ))}
                 </DndContext>

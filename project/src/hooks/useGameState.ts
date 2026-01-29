@@ -19,7 +19,7 @@ export function useGameState(initialPieces: Piece[]) {
         setPieces((prevPieces: Piece[]) =>
             prevPieces.map((piece: Piece) =>
                 piece.id === id
-                    ? { ...piece, rotation: getNextRotation(piece.rotation) }
+                    ? { ...piece, rotation: getNextRotation(piece.rotation), onBoard: false, boardX: undefined, boardY: undefined }
                     : piece
             )
         );
@@ -29,7 +29,7 @@ export function useGameState(initialPieces: Piece[]) {
         setPieces((prevPieces: Piece[]) =>
             prevPieces.map((piece: Piece) =>
                 piece.id === id
-                    ? { ...piece, reflection: !piece.reflection }
+                    ? { ...piece, reflection: !piece.reflection, onBoard: false, boardX: undefined, boardY: undefined }
                     : piece
             )
         );

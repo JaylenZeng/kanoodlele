@@ -59,7 +59,7 @@ export function DraggablePiece({
     return (
         <div
             ref={setNodeRef}
-            className={`${styles.pieceContainer} ${isDragging ? styles.dragging : ''}`}
+            className={`${styles.pieceContainer} ${isDragging ? styles.dragging : ''} ${piece.onBoard ? styles.onBoard : styles.offBoard}`}
             style={containerStyle}
             onContextMenu={handleContextMenu}
             onMouseDown={handleMouseDown}
@@ -70,7 +70,7 @@ export function DraggablePiece({
             {rotatedShape.map(([dx, dy], index) => (
                 <div
                     key={index}
-                    className={`${styles.cell} ${index === 0 ? styles.rootCell : ''}`}
+                    className={`${styles.cell} ${index === 0 ? styles.rootCell : ''} ${piece.onBoard ? styles.cellOnBoard : styles.cellOffBoard}`}
                     style={{
                         backgroundColor: color,
                         left: `${(dx - minX) * CELL_SIZE}px`,
