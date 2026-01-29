@@ -35,8 +35,8 @@ export function GameBoard({ gridWidth, gridHeight }: GameBoardProps): ReactEleme
         height: `${boardHeight}px`,
         left: `${(parentSize.width - boardWidth) / 2}px`,
         top: `${(parentSize.height - boardHeight) / 2}px`,
-        outline: isOver ? '4px solid lime' : '4px dashed red',
-        outlineOffset: '4px',
+        // outline: isOver ? '4px solid lime' : '4px dashed red',
+        // outlineOffset: '4px',
     };
 
     return (

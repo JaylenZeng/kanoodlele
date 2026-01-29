@@ -26,6 +26,7 @@ export default function App(): ReactElement {
         lastValidGridPosition,
     );
 
+    // this allows us to update the grid state to remove the piece from the board on transformation
     const handleRotatePiece = (id: string): void => {
         const piece = pieces.find(p => p.id === id);
 
@@ -49,10 +50,10 @@ export default function App(): ReactElement {
     };
 
 
-    useEffect(() => {
-        console.log('Piece state updated:', pieces);
-        console.log("Grid updated:", grid)
-    }, [grid]);
+    // useEffect(() => {
+    //     console.log('Piece state updated:', pieces);
+    //     console.log("Grid updated:", grid)
+    // }, [grid]);
 
     return (
         <div className={styles.container}>

@@ -2,6 +2,7 @@ import {useSensor, useSensors, MouseSensor, TouchSensor, type DragEndEvent, type
 import { type Piece } from '../types/piece.types';
 import { clearCells, updateGrid, isValidPlacement } from '../utils/gridUtils';
 import { type Cell } from '../types/board.types';
+import { checkWinCondition } from '../components/Game/GameController';
 
 
 export function useDragAndDropSetup(
@@ -39,7 +40,7 @@ export function useDragAndDropSetup(
     };
 
     const handleDragEnd = (event: DragEndEvent): void => {
-        const { active, delta, over } = event;
+        const { active, delta } = event;
         updatePiecePosition(active.id as string, delta.x, delta.y);
         const piece = pieces.find(p => p.id === event.active.id);
 
@@ -54,6 +55,10 @@ export function useDragAndDropSetup(
 
         lastValidGridPosition.current = null;
         setGrid(newGrid);
+
+        if (checkWinCondition(newGrid)) {
+            console.log("You win!")
+        }
     };
 
     return { sensors, handleDragStart, handleDragEnd };
