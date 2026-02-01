@@ -1,4 +1,4 @@
-import { type Cell } from "../../types/board.types";
+import { type Cell } from "../types/board.types";
 
 export function checkWinCondition(grid: Cell[][]): boolean {
     return grid.every((row) =>

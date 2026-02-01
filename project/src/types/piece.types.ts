@@ -14,6 +14,7 @@ export interface Piece {
     onBoard: boolean;
     boardX?: number;
     boardY?: number;
+    locked: boolean;
 }
 
 export interface DraggablePieceProps {

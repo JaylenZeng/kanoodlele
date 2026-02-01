@@ -4,8 +4,8 @@ import { CELL_SIZE } from "../../constants/piece.shapes";
 import { useDroppable } from "@dnd-kit/core";
 import styles from "./GameBoard.module.css";
 
-export function GameBoard({ gridWidth, gridHeight }: GameBoardProps): ReactElement {
-    const { setNodeRef, isOver } = useDroppable({
+export function GameBoard({ gridWidth, gridHeight, onBoardPositionChange }: GameBoardProps): ReactElement {
+    const { setNodeRef } = useDroppable({
         id: 'game-board',
     });
 
@@ -19,13 +19,20 @@ export function GameBoard({ gridWidth, gridHeight }: GameBoardProps): ReactEleme
                     width: parent.clientWidth,
                     height: parent.clientHeight,
                 });
+
+                const boardWidth = gridWidth * CELL_SIZE;
+                const boardHeight = gridHeight * CELL_SIZE;
+                const left = (parent.clientWidth - boardWidth) / 2;
+                const top = (parent.clientHeight - boardHeight) / 2;
+                onBoardPositionChange?.(left, top);
             }
         };
 
         updateSize();
         window.addEventListener('resize', updateSize);
         return () => window.removeEventListener('resize', updateSize);
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [gridWidth, gridHeight]);  // Remove onBoardPositionChange from deps
 
     const boardWidth = gridWidth * CELL_SIZE;
     const boardHeight = gridHeight * CELL_SIZE;

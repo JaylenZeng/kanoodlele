@@ -1,8 +1,8 @@
 import {useSensor, useSensors, MouseSensor, TouchSensor, type DragEndEvent, type DragStartEvent} from '@dnd-kit/core'
 import { type Piece } from '../types/piece.types';
-import { clearCells, updateGrid, isValidPlacement } from '../utils/gridUtils';
+import { clearCells, updateGrid } from '../utils/gridUtils';
 import { type Cell } from '../types/board.types';
-import { checkWinCondition } from '../components/Game/GameController';
+import { checkWinCondition } from '../game/GameController';
 
 
 export function useDragAndDropSetup(

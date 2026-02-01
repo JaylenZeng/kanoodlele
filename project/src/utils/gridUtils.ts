@@ -2,7 +2,6 @@ import { BOARD_CONFIG } from "../constants/game.constants";
 import { type Cell } from "../types/board.types";
 import { type Piece } from "../types/piece.types";
 import { getTransformedShape } from "./rotations";
-import { CELL_SIZE, BOARD_BORDER } from "../constants/game.constants";
 
 export const createInitialGrid = (): Cell[][] =>
     Array.from({ length: BOARD_CONFIG.gridHeight }, () =>
@@ -15,12 +14,10 @@ export const createInitialGrid = (): Cell[][] =>
 export function updateGrid(currGrid: Cell[][], rootX: number, rootY: number, piece: Piece ) {
     const coordinates = getTransformedShape(piece.type, piece.rotation, piece.reflection);
     const newGrid = currGrid.map(r => r.map(c => ({ ...c })));
-
     for (const [dx, dy] of coordinates) {
 
         const c = rootX + dx;
         const r = rootY + dy;
-
         newGrid[r][c] = {
             isOccupied: true,
         };

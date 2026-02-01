@@ -15,6 +15,16 @@ export function useGameState(initialPieces: Piece[]) {
         );
     };
 
+    const setPiecePosition = (id: string, x: number, y: number): void => {
+        setPieces((prevPieces: Piece[]) =>
+            prevPieces.map((piece: Piece) =>
+                piece.id === id
+                    ? { ...piece, x, y }
+                    : piece
+            )
+        );
+    };
+
     const rotatePiece = (id: string): void => {
         setPieces((prevPieces: Piece[]) =>
             prevPieces.map((piece: Piece) =>
@@ -53,5 +63,5 @@ export function useGameState(initialPieces: Piece[]) {
         );
     }
 
-    return { pieces, updatePiecePosition, rotatePiece, reflectPiece, placePieceOnBoard, removePieceFromBoard };
+    return { pieces, updatePiecePosition, setPiecePosition, rotatePiece, reflectPiece, placePieceOnBoard, removePieceFromBoard };
 }

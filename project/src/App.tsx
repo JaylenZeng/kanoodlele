@@ -1,5 +1,5 @@
-import React, { type ReactElement, useState, useEffect, useRef } from 'react';
-import { DndContext, useDndMonitor } from '@dnd-kit/core';
+import { type ReactElement, useState, useEffect, useRef } from 'react';
+import { DndContext } from '@dnd-kit/core';
 import { DraggablePiece } from './components/Pieces/DraggablePiece';
 import { GameBoard } from './components/Board/GameBoard';
 import { useGameState } from './hooks/useGameState';
@@ -10,10 +10,16 @@ import { type Piece } from './types/piece.types';
 import { type Cell } from './types/board.types'
 import styles from './App.module.css';
 import { snapToGridOnBoard } from './utils/snapToGrid';
+import { generatePuzzle } from './game/puzzleGenerator';
+import { CELL_SIZE } from './constants/piece.shapes';
+import { BOARD_BORDER } from './constants/game.constants';
+import { getTransformedShape } from './utils/rotations';
+
+const STARTING_STATE = generatePuzzle(INITIAL_PIECES, createInitialGrid());
 
 export default function App(): ReactElement {
-    const { pieces, updatePiecePosition, rotatePiece, reflectPiece, placePieceOnBoard, removePieceFromBoard } = useGameState(INITIAL_PIECES);
-    const [grid, setGrid] = useState<Cell[][]>(createInitialGrid);
+    const [grid, setGrid] = useState<Cell[][]>(STARTING_STATE.grid);
+    const { pieces, updatePiecePosition, setPiecePosition, rotatePiece, reflectPiece, placePieceOnBoard, removePieceFromBoard } = useGameState(STARTING_STATE.pieces);
     const lastValidGridPosition = useRef<{ gridX: number; gridY: number } | null>(null);
 
     const { sensors, handleDragStart, handleDragEnd } = useDragAndDropSetup(
@@ -49,12 +55,33 @@ export default function App(): ReactElement {
         reflectPiece(id);
     };
 
+    const piecesRef = useRef(pieces);
 
+    // Update the ref whenever pieces changes
+    useEffect(() => {
+        piecesRef.current = pieces;
+    }, [pieces]);
+
+    const updateBoardPiecePositions = (boardLeft: number, boardTop: number): void => {
+        // Use piecesRef.current instead of pieces
+        piecesRef.current.forEach(piece => {
+            if (piece.onBoard && piece.boardX !== undefined && piece.boardY !== undefined) {
+                const shape = getTransformedShape(piece.type, piece.rotation, piece.reflection);
+                const minX = Math.min(...shape.map(([dx]) => dx));
+                const minY = Math.min(...shape.map(([, dy]) => dy));
+
+                const newX = boardLeft + (piece.boardX * CELL_SIZE) + (minX * CELL_SIZE) + BOARD_BORDER;
+                const newY = boardTop + (piece.boardY * CELL_SIZE) + (minY * CELL_SIZE) + BOARD_BORDER;
+
+                setPiecePosition(piece.id, newX, newY);
+            }
+        });
+    };
     // useEffect(() => {
     //     console.log('Piece state updated:', pieces);
     //     console.log("Grid updated:", grid)
     // }, [grid]);
-
+ 
     return (
         <div className={styles.container}>
             <div className={styles.header}>
@@ -77,6 +104,7 @@ export default function App(): ReactElement {
                         gridWidth={BOARD_CONFIG.gridWidth}
                         gridHeight={BOARD_CONFIG.gridHeight}
                         grid={grid}
+                        onBoardPositionChange={updateBoardPiecePositions}
                     />
 
                     {pieces.map((piece: Piece) => (

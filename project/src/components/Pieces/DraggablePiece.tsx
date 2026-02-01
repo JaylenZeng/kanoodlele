@@ -10,7 +10,7 @@ export function DraggablePiece({
     onRotate,
     onReflect
 }: DraggablePieceProps): ReactElement {
-    const { id, type, color, x, y, rotation, reflection } = piece;
+    const { id, type, color, x, y, rotation, reflection, locked } = piece;
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: id,
     });
@@ -28,6 +28,10 @@ export function DraggablePiece({
 
     const handleContextMenu = (e: React.MouseEvent): void => {
         e.preventDefault();
+
+        if (locked)
+            return;
+
         if (e.shiftKey) {
             onReflect();  // Shift + Right-click to reflect
         } else {
@@ -36,7 +40,7 @@ export function DraggablePiece({
     };
 
     const handleMouseDown = (e: React.MouseEvent): void => {
-        if (e.button === 1 || (e.shiftKey && e.button === 0)) { // middle click
+        if ((e.button === 1 || (e.shiftKey && e.button === 0)) && !locked) {
             console.log("click!")
             e.preventDefault
             onReflect();
@@ -44,6 +48,7 @@ export function DraggablePiece({
     }
 
     const handleDoubleClick = (): void => {
+        if (locked) return;
         onRotate();
     };
 
@@ -59,18 +64,27 @@ export function DraggablePiece({
     return (
         <div
             ref={setNodeRef}
-            className={`${styles.pieceContainer} ${isDragging ? styles.dragging : ''} ${piece.onBoard ? styles.onBoard : styles.offBoard}`}
+            className={`
+                ${styles.pieceContainer} 
+                ${isDragging ? styles.dragging : ''} 
+                ${piece.onBoard ? styles.onBoard : styles.offBoard} 
+                ${locked ? styles.locked : ''}`}
             style={containerStyle}
             onContextMenu={handleContextMenu}
             onMouseDown={handleMouseDown}
             onDoubleClick={handleDoubleClick}
-            {...listeners}
+            {...(locked ? {} : listeners)}
             {...attributes}
         >
             {rotatedShape.map(([dx, dy], index) => (
                 <div
                     key={index}
-                    className={`${styles.cell} ${index === 0 ? styles.rootCell : ''} ${piece.onBoard ? styles.cellOnBoard : styles.cellOffBoard}`}
+                    className={`${styles.cell} ${index === 0 ? styles.rootCell : ''} ${locked
+                            ? styles.cellLocked
+                            : piece.onBoard
+                                ? styles.cellOnBoard
+                                : styles.cellOffBoard
+                        }`}
                     style={{
                         backgroundColor: color,
                         left: `${(dx - minX) * CELL_SIZE}px`,
