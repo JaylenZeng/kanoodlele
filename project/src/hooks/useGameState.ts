@@ -1,5 +1,5 @@
 import React from 'react';
-import {type Piece, type PieceType} from '../types/piece.types';
+import {type Piece} from '../types/piece.types';
 import { getNextRotation } from '../utils/rotations';
 
 export function useGameState(initialPieces: Piece[]) {

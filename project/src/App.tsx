@@ -62,6 +62,12 @@ export default function App(): ReactElement {
         piecesRef.current = pieces;
     }, [pieces]);
 
+    // for debugging piece and grid state
+    // useEffect(() => {
+    //     console.log('Piece state updated:', pieces);
+    //     console.log("Grid updated:", grid)
+    // }, [grid]);
+
     const updateBoardPiecePositions = (boardLeft: number, boardTop: number): void => {
         // Use piecesRef.current instead of pieces
         piecesRef.current.forEach(piece => {
@@ -77,10 +83,6 @@ export default function App(): ReactElement {
             }
         });
     };
-    // useEffect(() => {
-    //     console.log('Piece state updated:', pieces);
-    //     console.log("Grid updated:", grid)
-    // }, [grid]);
  
     return (
         <div className={styles.container}>

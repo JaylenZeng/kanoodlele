@@ -1,8 +1,9 @@
 import { getTodaysSeed, createSeededRandom, getRandomInt } from "./random";
 import { type Piece } from "../types/piece.types";
 import { type Cell } from "../types/board.types";
-import { updateGrid } from "../utils/gridUtils";
+import { isValidPlacement, updateGrid, hasImpossibleGaps } from "../utils/gridUtils";
 import { BOARD_CONFIG } from "../constants/game.constants";
+import { type Rotation } from "../types/piece.types";
 
 export function generatePuzzle(
     pieces: Piece[],
@@ -10,48 +11,77 @@ export function generatePuzzle(
 ): { pieces: Piece[], grid: Cell[][] } {
     const random = createSeededRandom(getTodaysSeed());
 
-    const pieceIdx1 = getRandomInt(random, 0, 11);
-    const pieceIdx2 = (getRandomInt(random, 0, 11));
-    
-    // const firstCol = getRandomInt(random, 0, BOARD_CONFIG.gridWidth - 1);   // 0-10
-    // const firstRow = getRandomInt(random, 0, BOARD_CONFIG.gridHeight - 1);  // 0-4
-    // const secondCol = getRandomInt(random, 0, BOARD_CONFIG.gridWidth - 1);
-    // const secondRow = getRandomInt(random, 0, BOARD_CONFIG.gridHeight - 1);
+    while (true) {
+        const pieceIdx1 = getRandomInt(random, 0, 11);
+        let pieceIdx2 = getRandomInt(random, 0, 11);
+        while (pieceIdx2 === pieceIdx1) {
+            pieceIdx2 = getRandomInt(random, 0, 11);
+        }
 
-    // Column (X) should be 0 to gridWidth-1 (0-10)
-    // Row (Y) should be 0 to gridHeight-1 (0-4)
-    const firstCol = 1;
-    const firstRow = 1;
-    const secondCol = 5;
-    const secondRow = 2;
+        let firstCol = getRandomInt(random, 0, BOARD_CONFIG.gridWidth - 1);
+        let firstRow = getRandomInt(random, 0, BOARD_CONFIG.gridHeight - 1);
+        let secondCol = getRandomInt(random, 0, BOARD_CONFIG.gridWidth - 1);
+        let secondRow = getRandomInt(random, 0, BOARD_CONFIG.gridHeight - 1);
 
-    // Place piece1 and piece2 on board, adjust states accordingly
-    const newPieces = pieces.map((piece, index) => {
-        if (index === pieceIdx1) {
-            return {
-                ...piece,
-                onBoard: true,
-                boardX: firstCol,
-                boardY: firstRow,
-                locked: true,
+        let newPiece1 = {
+            ...pieces[pieceIdx1],
+            onBoard: true,
+            boardX: firstCol,
+            boardY: firstRow,
+            locked: true,
+            rotation: getRandomInt(random, 0, 3) * 90 as Rotation,
+            reflection: random() > 0.5,
+        };
+
+        while (!isValidPlacement(grid, newPiece1.boardX, newPiece1.boardY, newPiece1)) {
+            newPiece1 = {
+                ...newPiece1,
+                boardX: getRandomInt(random, 0, BOARD_CONFIG.gridWidth - 1),
+                boardY: getRandomInt(random, 0, BOARD_CONFIG.gridHeight - 1),
+                rotation: getRandomInt(random, 0, 3) * 90 as Rotation,
+                reflection: random() > 0.5,
             };
         }
-        if (index === pieceIdx2) {
-            return {
-                ...piece,
-                onBoard: true,
-                boardX: secondCol,
-                boardY: secondRow,
-                locked: true,
+
+        let newGrid = updateGrid(grid, newPiece1.boardX, newPiece1.boardY, newPiece1);
+
+        let newPiece2 = {
+            ...pieces[pieceIdx2],
+            onBoard: true,
+            boardX: secondCol,
+            boardY: secondRow,
+            locked: true,
+            rotation: getRandomInt(random, 0, 3) * 90 as Rotation,
+            reflection: random() > 0.5,
+        };
+
+        while (!isValidPlacement(newGrid, newPiece2.boardX, newPiece2.boardY, newPiece2)) {
+            newPiece2 = {
+                ...newPiece2,
+                boardX: getRandomInt(random, 0, BOARD_CONFIG.gridWidth - 1),
+                boardY: getRandomInt(random, 0, BOARD_CONFIG.gridHeight - 1),
+                rotation: getRandomInt(random, 0, 3) * 90 as Rotation,
+                reflection: random() > 0.5,
             };
         }
-        return piece;
-    });
 
+        newGrid = updateGrid(newGrid, newPiece2.boardX, newPiece2.boardY, newPiece2);
 
-    // this includes locking the pieces and setting onBoard, boardX, and boardY
-    let newGrid = updateGrid(grid, firstCol, firstRow, newPieces[pieceIdx1]);
-    newGrid = updateGrid(newGrid, secondCol, secondRow, newPieces[pieceIdx2]);
+        // Check for impossible gaps - if none, we have a valid puzzle
+        if (!hasImpossibleGaps(newGrid)) {
+            const newPieces = pieces.map((piece, index) => {
+                if (index === pieceIdx1) {
+                    return newPiece1;
+                }
+                if (index === pieceIdx2) {
+                    return newPiece2;
+                }
+                return piece;
+            });
 
-    return { pieces: newPieces, grid: newGrid };
+            return { pieces: newPieces, grid: newGrid };
+        }
+
+        // Otherwise, loop continues and generates a new puzzle attempt
+    }
 }

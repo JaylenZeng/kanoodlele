@@ -47,6 +47,7 @@ export function isValidPlacement(currGrid: Cell[][], rootX: number, rootY: numbe
         return false;
     }
     
+
     const coordinates = getTransformedShape(piece.type, piece.rotation, piece.reflection);
 
     for (const [dx, dy] of coordinates) {
@@ -66,4 +67,47 @@ export function isValidPlacement(currGrid: Cell[][], rootX: number, rootY: numbe
 
     // All cells are valid
     return true;
+}
+
+export function hasImpossibleGaps(grid: Cell[][]): boolean {
+    const visited: boolean[][] = grid.map(row => row.map(() => false));
+
+    for (let r = 0; r < BOARD_CONFIG.gridHeight; r++) {
+        for (let c = 0; c < BOARD_CONFIG.gridWidth; c++) {
+            if (!grid[r][c].isOccupied && !visited[r][c]) {
+                const groupSize = floodFill(grid, visited, r, c);
+                if (groupSize > 0 && groupSize < 4) {
+                    return true; // Found an impossible gap
+                }
+            }
+        }
+    }
+    return false;
+}
+
+function floodFill(grid: Cell[][], visited: boolean[][], startR: number, startC: number): number {
+    const stack: [number, number][] = [[startR, startC]];
+    let count = 0;
+
+    while (stack.length > 0) {
+        const [r, c] = stack.pop()!;
+
+        // Skip if out of bounds, already visited, or occupied
+        if (r < 0 || r >= BOARD_CONFIG.gridHeight ||
+            c < 0 || c >= BOARD_CONFIG.gridWidth ||
+            visited[r][c] || grid[r][c].isOccupied) {
+            continue;
+        }
+
+        visited[r][c] = true;
+        count++;
+
+        // Add adjacent cells (up, down, left, right)
+        stack.push([r - 1, c]);
+        stack.push([r + 1, c]);
+        stack.push([r, c - 1]);
+        stack.push([r, c + 1]);
+    }
+
+    return count;
 }
