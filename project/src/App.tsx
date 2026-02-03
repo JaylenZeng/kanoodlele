@@ -14,13 +14,27 @@ import { generatePuzzle } from './game/puzzleGenerator';
 import { CELL_SIZE } from './constants/piece.shapes';
 import { BOARD_BORDER } from './constants/game.constants';
 import { getTransformedShape } from './utils/rotations';
+import { type GameState, saveGameState, loadGameState, resetGameState } from './utils/storage';
+import { getTodaysSeed } from './game/random';
+import { checkWinCondition } from './game/GameController';
+import { ResetButton } from './components/UI/ResetButton';
 
-const STARTING_STATE = generatePuzzle(INITIAL_PIECES, createInitialGrid());
+// load any previous progress the player made
+const savedState = loadGameState();
+const todaysSeed = getTodaysSeed();
+
+const isRestoringState = savedState !== null && savedState.seed === todaysSeed;
+
+const STARTING_STATE = isRestoringState
+    ? { pieces: savedState.pieces, grid: savedState.grid }
+    : generatePuzzle(INITIAL_PIECES, createInitialGrid());
 
 export default function App(): ReactElement {
     const [grid, setGrid] = useState<Cell[][]>(STARTING_STATE.grid);
     const { pieces, updatePiecePosition, setPiecePosition, rotatePiece, reflectPiece, placePieceOnBoard, removePieceFromBoard } = useGameState(STARTING_STATE.pieces);
+    const [isCompleted, setIsCompleted] = useState(isRestoringState ? savedState.isCompleted : false)
     const lastValidGridPosition = useRef<{ gridX: number; gridY: number } | null>(null);
+    const hasInitialized = useRef(false);
 
     const { sensors, handleDragStart, handleDragEnd } = useDragAndDropSetup(
         updatePiecePosition, 
@@ -55,12 +69,32 @@ export default function App(): ReactElement {
         reflectPiece(id);
     };
 
+    const handleReset = (): void => {
+        resetGameState();
+        window.location.reload();
+    };
+
     const piecesRef = useRef(pieces);
 
     // Update the ref whenever pieces changes
-    useEffect(() => {
+    useEffect(() => {  
         piecesRef.current = pieces;
-    }, [pieces]);
+
+        // Skip saving on initial mount
+        if (!hasInitialized.current) {
+            hasInitialized.current = true;
+            return;
+        }
+
+        const newState: GameState = {
+            seed: getTodaysSeed(),
+            pieces: pieces,
+            grid: grid,
+            timer: 1,
+            isCompleted: checkWinCondition(grid),
+        }
+        saveGameState(newState);
+    }, [pieces, grid]);
 
     // for debugging piece and grid state
     // useEffect(() => {
@@ -91,6 +125,7 @@ export default function App(): ReactElement {
                 <p className={styles.description}>
                     Drag pieces around • Right-click or double-click to rotate
                 </p>
+                <ResetButton onReset={handleReset} />
             </div>
 
             <div className={styles.gameArea}>

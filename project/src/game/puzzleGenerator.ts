@@ -10,6 +10,7 @@ export function generatePuzzle(
     grid: Cell[][]
 ): { pieces: Piece[], grid: Cell[][] } {
     const random = createSeededRandom(getTodaysSeed());
+    // const random = createSeededRandom(1500);
 
     while (true) {
         const pieceIdx1 = getRandomInt(random, 0, 11);
