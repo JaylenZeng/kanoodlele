@@ -7,6 +7,7 @@ export interface GameState {
     grid: Cell[][]
     timer: number
     isCompleted: boolean
+    hasStarted: boolean
 }
 
 const STORAGE_KEY = 'kanoodle-game-state'

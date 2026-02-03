@@ -18,6 +18,8 @@ import { type GameState, saveGameState, loadGameState, resetGameState } from './
 import { getTodaysSeed } from './game/random';
 import { checkWinCondition } from './game/GameController';
 import { ResetButton } from './components/UI/ResetButton';
+import { IntroModal } from './components/UI/IntroModal';
+import { Timer } from './components/UI/Timer';
 
 // load any previous progress the player made
 const savedState = loadGameState();
@@ -34,6 +36,9 @@ export default function App(): ReactElement {
     const { pieces, updatePiecePosition, setPiecePosition, rotatePiece, reflectPiece, placePieceOnBoard, removePieceFromBoard } = useGameState(STARTING_STATE.pieces);
     const [isCompleted, setIsCompleted] = useState(isRestoringState ? savedState.isCompleted : false)
     const lastValidGridPosition = useRef<{ gridX: number; gridY: number } | null>(null);
+    const [hasStarted, setHasStarted] = useState(isRestoringState ? savedState.hasStarted : false);
+    const [timerRunning, setTimerRunning] = useState(isRestoringState && savedState.hasStarted && !savedState.isCompleted);
+    const [time, setTime] = useState(isRestoringState ? savedState.timer : 0);
     const hasInitialized = useRef(false);
 
     const { sensors, handleDragStart, handleDragEnd } = useDragAndDropSetup(
@@ -74,6 +79,15 @@ export default function App(): ReactElement {
         window.location.reload();
     };
 
+    const handlePlay = (): void => {
+        setHasStarted(true);
+        setTimerRunning(true);
+    };
+
+    const handleTimeUpdate = (newTime: number): void => {
+        setTime(newTime);
+    };
+
     const piecesRef = useRef(pieces);
 
     // Update the ref whenever pieces changes
@@ -90,11 +104,12 @@ export default function App(): ReactElement {
             seed: getTodaysSeed(),
             pieces: pieces,
             grid: grid,
-            timer: 1,
+            timer: time,
             isCompleted: checkWinCondition(grid),
+            hasStarted: true
         }
         saveGameState(newState);
-    }, [pieces, grid]);
+    }, [pieces, grid, time, hasStarted]);
 
     // for debugging piece and grid state
     // useEffect(() => {
@@ -117,15 +132,17 @@ export default function App(): ReactElement {
             }
         });
     };
- 
+    
     return (
         <div className={styles.container}>
+            {!hasStarted && <IntroModal onPlay={handlePlay} />}
             <div className={styles.header}>
                 <h1 className={styles.title}>Kanoodle Puzzle Game</h1>
                 <p className={styles.description}>
                     Drag pieces around • Right-click or double-click to rotate
                 </p>
                 <ResetButton onReset={handleReset} />
+                <Timer isRunning={timerRunning && !isCompleted} initialTime={time} onTimeUpdate={handleTimeUpdate} />
             </div>
 
             <div className={styles.gameArea}>
