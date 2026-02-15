@@ -20,6 +20,7 @@ import { checkWinCondition } from './game/GameController';
 import { ResetButton } from './components/UI/ResetButton';
 import { IntroModal } from './components/UI/IntroModal';
 import { Timer } from './components/UI/Timer';
+import { WinScreen } from './components/UI/WinScreen';
 
 // load any previous progress the player made
 const savedState = loadGameState();
@@ -30,15 +31,42 @@ const isRestoringState = savedState !== null && savedState.seed === todaysSeed;
 const STARTING_STATE = isRestoringState
     ? { pieces: savedState.pieces, grid: savedState.grid }
     : generatePuzzle(INITIAL_PIECES, createInitialGrid());
+const getInitialTime = (): number => {
+    const preservedTime = sessionStorage.getItem('kanoodle-timer-preserve');
+    if (preservedTime) {
+        sessionStorage.removeItem('kanoodle-timer-preserve');
+        return parseInt(preservedTime, 10);
+    }
+    return isRestoringState ? savedState.timer : 0;
+};
 
+const getInitialHasStarted = (): boolean => {
+    const preserved = sessionStorage.getItem('kanoodle-started-preserve');
+    if (preserved) {
+        sessionStorage.removeItem('kanoodle-started-preserve');
+        return preserved === 'true';
+    }
+    return isRestoringState ? savedState.hasStarted : false;
+};
+
+const getInitialTimerRunning = (): boolean => {
+    const preserved = sessionStorage.getItem('kanoodle-timer-running-preserve');
+    if (preserved) {
+        sessionStorage.removeItem('kanoodle-timer-running-preserve');
+        return preserved === 'true';
+    }
+    return isRestoringState ? (savedState.hasStarted && !savedState.isCompleted) : false;
+};
+   
 export default function App(): ReactElement {
     const [grid, setGrid] = useState<Cell[][]>(STARTING_STATE.grid);
     const { pieces, updatePiecePosition, setPiecePosition, rotatePiece, reflectPiece, placePieceOnBoard, removePieceFromBoard } = useGameState(STARTING_STATE.pieces);
     const [isCompleted, setIsCompleted] = useState(isRestoringState ? savedState.isCompleted : false)
     const lastValidGridPosition = useRef<{ gridX: number; gridY: number } | null>(null);
-    const [hasStarted, setHasStarted] = useState(isRestoringState ? savedState.hasStarted : false);
-    const [timerRunning, setTimerRunning] = useState(isRestoringState && savedState.hasStarted && !savedState.isCompleted);
-    const [time, setTime] = useState(isRestoringState ? savedState.timer : 0);
+    const [hasStarted, setHasStarted] = useState(getInitialHasStarted);
+    const [timerRunning, setTimerRunning] = useState(getInitialTimerRunning);
+    const [time, setTime] = useState(getInitialTime);
+    const [showWinScreen, setShowWinScreen] = useState(false);
     const hasInitialized = useRef(false);
 
     const { sensors, handleDragStart, handleDragEnd } = useDragAndDropSetup(
@@ -75,6 +103,9 @@ export default function App(): ReactElement {
     };
 
     const handleReset = (): void => {
+        sessionStorage.setItem('kanoodle-timer-preserve', time.toString());
+        sessionStorage.setItem('kanoodle-started-preserve', 'true');
+        sessionStorage.setItem('kanoodle-timer-running-preserve', timerRunning.toString());
         resetGameState();
         window.location.reload();
     };
@@ -100,6 +131,12 @@ export default function App(): ReactElement {
             return;
         }
 
+        if (checkWinCondition(grid) && !isCompleted) {
+            setIsCompleted(true);
+            setTimerRunning(false);
+            setShowWinScreen(true);
+        }
+
         const newState: GameState = {
             seed: getTodaysSeed(),
             pieces: pieces,
@@ -117,10 +154,15 @@ export default function App(): ReactElement {
     //     console.log("Grid updated:", grid)
     // }, [grid]);
 
+    const initializePiecePositions = useRef(isRestoringState);
+
     const updateBoardPiecePositions = (boardLeft: number, boardTop: number): void => {
-        // Use piecesRef.current instead of pieces
-        piecesRef.current.forEach(piece => {
+        const boardWidth = BOARD_CONFIG.gridWidth * CELL_SIZE;
+        const boardHeight = BOARD_CONFIG.gridHeight * CELL_SIZE;
+
+        piecesRef.current.forEach((piece, index) => {
             if (piece.onBoard && piece.boardX !== undefined && piece.boardY !== undefined) {
+                // Existing logic for pieces on the board
                 const shape = getTransformedShape(piece.type, piece.rotation, piece.reflection);
                 const minX = Math.min(...shape.map(([dx]) => dx));
                 const minY = Math.min(...shape.map(([, dy]) => dy));
@@ -130,16 +172,41 @@ export default function App(): ReactElement {
 
                 setPiecePosition(piece.id, newX, newY);
             }
+            else if (!piece.onBoard && !initializePiecePositions.current) {
+                // Position off-board pieces around the board
+                // Left side pieces (first 6 by index in original array)
+                const pieceIndex = INITIAL_PIECES.findIndex(p => p.id === piece.id);
+
+                if (pieceIndex < 6) {
+                    const col = pieceIndex < 3 ? 0 : 1;
+                    const row = pieceIndex % 3;
+                    const x = boardLeft - 220 + (col * 110);
+                    const y = boardTop - 50 + (row * 140);
+                    setPiecePosition(piece.id, x, y);
+                }
+                // Right side pieces (last 6)
+                else {
+                    const col = pieceIndex < 9 ? 0 : 1;
+                    const row = (pieceIndex - 6) % 3;
+                    const x = boardLeft + boardWidth + 30 + (col * 110);
+                    const y = boardTop - 50 + (row * 140);
+                    setPiecePosition(piece.id, x, y);
+                }
+            }
         });
+
+        // Only initialize off-board positions once
+        initializePiecePositions.current = true;
     };
     
     return (
         <div className={styles.container}>
             {!hasStarted && <IntroModal onPlay={handlePlay} />}
+            {showWinScreen && <WinScreen time={time} onClose={() => setShowWinScreen(false)} />}
             <div className={styles.header}>
                 <h1 className={styles.title}>Kanoodle Puzzle Game</h1>
                 <p className={styles.description}>
-                    Drag pieces around • Right-click or double-click to rotate
+                    Drag pieces around • Right-click to rotate • Shift + Right-click to reflect
                 </p>
                 <ResetButton onReset={handleReset} />
                 <Timer isRunning={timerRunning && !isCompleted} initialTime={time} onTimeUpdate={handleTimeUpdate} />
