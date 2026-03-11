@@ -4,7 +4,7 @@ A web-based recreation of the classic Kanoodle puzzle game. Every day, a new puz
 
 ## 🎮 Play Now
 
-[Play Kanoodle](https://your-deployment-url.com)
+[Play Kanoodle](https://kanoodlele.onrender.com)
 
 ## 🧩 How to Play
 
