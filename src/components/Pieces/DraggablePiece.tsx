@@ -41,8 +41,7 @@ export function DraggablePiece({
 
     const handleMouseDown = (e: React.MouseEvent): void => {
         if ((e.button === 1 || (e.shiftKey && e.button === 0)) && !locked) {
-            console.log("click!")
-            e.preventDefault
+            e.preventDefault();
             onReflect();
         }
     }
@@ -70,11 +69,11 @@ export function DraggablePiece({
                 ${piece.onBoard ? styles.onBoard : styles.offBoard} 
                 ${locked ? styles.locked : ''}`}
             style={containerStyle}
+            {...(locked ? {} : listeners)}
+            {...attributes}
             onContextMenu={handleContextMenu}
             onMouseDown={handleMouseDown}
             onDoubleClick={handleDoubleClick}
-            {...(locked ? {} : listeners)}
-            {...attributes}
         >
             {rotatedShape.map(([dx, dy], index) => (
                 <div
