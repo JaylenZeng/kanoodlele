@@ -85,7 +85,7 @@ src/
 - [ ] Puzzle solver / hint system
 - [ ] Share results (like Wordle)
 - [ ] Statistics tracking
-- [ ] Difficulty levels (1, 2, or 3 starting pieces)
+- [ ] Mobile support
 - [ ] Sound effects
 - [ ] Dark mode
 
