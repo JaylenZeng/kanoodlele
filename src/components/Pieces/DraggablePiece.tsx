@@ -69,11 +69,11 @@ export function DraggablePiece({
                 ${piece.onBoard ? styles.onBoard : styles.offBoard} 
                 ${locked ? styles.locked : ''}`}
             style={containerStyle}
-            {...(locked ? {} : listeners)}
-            {...attributes}
             onContextMenu={handleContextMenu}
             onMouseDown={handleMouseDown}
             onDoubleClick={handleDoubleClick}
+            {...(locked ? {} : listeners)}
+            {...attributes}
         >
             {rotatedShape.map(([dx, dy], index) => (
                 <div
