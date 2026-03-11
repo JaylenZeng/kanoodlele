@@ -212,7 +212,7 @@ export default function App(): ReactElement {
             <div className={styles.header}>
                 <h1 className={styles.title}>Kanoodle Puzzle Game</h1>
                 <p className={styles.description}>
-                    Drag pieces around • Right-click to rotate • Shift + Right-click to reflect
+                    Drag pieces around • Right-click to rotate • Double-click to reflect
                 </p>
                 <ResetButton onReset={handleReset} />
                 <Timer isRunning={timerRunning && !isCompleted} initialTime={time} onTimeUpdate={handleTimeUpdate} />

@@ -48,7 +48,7 @@ export function DraggablePiece({
 
     const handleDoubleClick = (): void => {
         if (locked) return;
-        onRotate();
+        onReflect();
     };
 
     const containerStyle: React.CSSProperties = {
