@@ -1,4 +1,5 @@
-import { type Modifier } from '@dnd-kit/core';
+import { type Modifier, type ClientRect } from '@dnd-kit/core';
+import type { Transform } from '@dnd-kit/utilities';
 import { CELL_SIZE } from '../constants/piece.shapes';
 import { BOARD_BORDER } from '../constants/game.constants';
 import { type Piece } from '../types/piece.types';
@@ -11,7 +12,12 @@ export const snapToGridOnBoard = (
     pieces: Piece[], 
     grid: Cell[][], 
     lastValidGridPosition: RefObject<{ gridX: number; gridY: number } | null>
-): Modifier => ({ transform, over, active, draggingNodeRect }) => {
+): Modifier => ({ transform, over, active, draggingNodeRect }: {
+    transform: Transform;
+    over: { id: string | number; rect: ClientRect } | null;
+    active: { id: string | number } | null;
+    draggingNodeRect: ClientRect | null;
+}) => {
     if (over?.id === 'game-board' && over.rect && active) {
         const piece = pieces.find(p => p.id === active.id);
 

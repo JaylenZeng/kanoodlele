@@ -1,4 +1,4 @@
-import { type ReactElement, useState, useEffect, useRef } from 'react';
+import { type ReactElement, useState, useEffect, useRef, useMemo } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import { DraggablePiece } from './components/Pieces/DraggablePiece';
 import { GameBoard } from './components/Board/GameBoard';
@@ -57,7 +57,7 @@ const getInitialTimerRunning = (): boolean => {
     }
     return isRestoringState ? (savedState.hasStarted && !savedState.isCompleted) : false;
 };
-   
+
 export default function App(): ReactElement {
     const [grid, setGrid] = useState<Cell[][]>(STARTING_STATE.grid);
     const { pieces, updatePiecePosition, setPiecePosition, rotatePiece, reflectPiece, placePieceOnBoard, removePieceFromBoard } = useGameState(STARTING_STATE.pieces);
@@ -78,6 +78,12 @@ export default function App(): ReactElement {
         removePieceFromBoard,
         lastValidGridPosition,
     );
+
+    const modifier = useMemo(
+        () => snapToGridOnBoard(pieces, grid, lastValidGridPosition),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [pieces, grid]
+    )
 
     // this allows us to update the grid state to remove the piece from the board on transformation
     const handleRotatePiece = (id: string): void => {
@@ -158,9 +164,9 @@ export default function App(): ReactElement {
 
     const updateBoardPiecePositions = (boardLeft: number, boardTop: number): void => {
         const boardWidth = BOARD_CONFIG.gridWidth * CELL_SIZE;
-        const boardHeight = BOARD_CONFIG.gridHeight * CELL_SIZE;
+        // const boardHeight = BOARD_CONFIG.gridHeight * CELL_SIZE;
 
-        piecesRef.current.forEach((piece, index) => {
+        piecesRef.current.forEach((piece) => {
             if (piece.onBoard && piece.boardX !== undefined && piece.boardY !== undefined) {
                 // Existing logic for pieces on the board
                 const shape = getTransformedShape(piece.type, piece.rotation, piece.reflection);
@@ -216,7 +222,7 @@ export default function App(): ReactElement {
                 <DndContext
                     sensors={sensors}
                     onDragStart={handleDragStart}
-                    modifiers={[snapToGridOnBoard(pieces, grid, lastValidGridPosition)]}
+                    modifiers={[modifier]}
                     onDragEnd={handleDragEnd}
                 >   
 

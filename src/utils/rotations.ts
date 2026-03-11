@@ -1,4 +1,4 @@
-import { type Coordinate, type Piece, type PieceType, type Rotation} from "../types/piece.types";
+import { type Coordinate, type PieceType, type Rotation} from "../types/piece.types";
 import { PIECE_SHAPES } from "../constants/piece.shapes";
 
 export function rotateCoordinate(coord: Coordinate, rotation: Rotation): Coordinate {
